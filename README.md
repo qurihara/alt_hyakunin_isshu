@@ -1,3 +1,7 @@
+# DEMO
+
+https://qurihara.github.io/alt_hyakunin_isshu/
+
 # alt_hyakunin_isshu
 
 作業BGM的スクリーンセーバーwebアプリ。
