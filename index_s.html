@@ -152,6 +152,38 @@
             margin-bottom: 0;
         }
 
+        #volume-control {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            opacity: 0.3;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+
+        #volume-control:hover {
+            opacity: 1;
+        }
+
+        #volume-slider {
+            -webkit-appearance: none;
+            width: 100px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        #volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
         footer {
             position: fixed;
             bottom: 0;
@@ -203,6 +235,10 @@
         </p>
     </div>
 
+    <div id="volume-control">
+        <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0">
+    </div>
+
     <footer>
         <a href="https://x.com/qurihara" target="_blank" rel="noopener noreferrer">© Kazutaka Kurihara</a>
         <a href="https://github.com/qurihara/alt_hyakunin_isshu" target="_blank" rel="noopener noreferrer">Github Repository</a>
@@ -223,9 +259,12 @@
         const gendaigoEl = document.getElementById('gendaigo');
         const positiveCaptionEl = document.getElementById('positive_caption');
         const positiveEl = document.getElementById('positive');
+        const volumeSlider = document.getElementById('volume-slider');
 
         let isRunning = false;
         let isFirstPlay = true;
+        let currentAudio = [];
+        let volumeLevel = 0;
         let sequenceTimeout;
 
         async function loadData() {
@@ -271,7 +310,20 @@
             return true;
         }
         
+        function stopCurrentAudio() {
+            currentAudio.forEach(audio => {
+                if (audio) {
+                    audio.pause();
+                    audio.src = '';
+                }
+            });
+            currentAudio = [];
+        }
+
         async function playKaruta(karuta) {
+            stopCurrentAudio();
+            const paddedNumber = karuta.number.padStart(3, '0');
+
             numberEl.textContent = karuta.number === '0' ? '序歌' : `#${karuta.number}`;
             wakaEl.textContent = karuta.waka;
             gendaigoCaptionEl.textContent = '【一般的なニュアンス】';
@@ -279,10 +331,34 @@
             positiveCaptionEl.textContent = '【モダンポジティブ解釈】';
             positiveEl.textContent = karuta.positive;
 
+            const audioA = new Audio(`sounds/I-${paddedNumber}A.mp3`);
+            const audioB = new Audio(`sounds/I-${paddedNumber}B.mp3`);
+            audioA.volume = volumeLevel;
+            audioB.volume = volumeLevel;
+            currentAudio = [audioA, audioB];
+
+            const playPromise = new Promise((resolve, reject) => {
+                audioA.onended = () => audioB.play().catch(reject);
+                audioB.onended = resolve;
+                audioA.onerror = (e) => reject(`音声ファイル(A)の読み込みに失敗: I-${paddedNumber}A.mp3`);
+                audioB.onerror = (e) => reject(`音声ファイル(B)の読み込みに失敗: I-${paddedNumber}B.mp3`);
+                
+                const playResult = audioA.play();
+                if (playResult !== undefined) {
+                    playResult.catch(e => reject(`音声の再生に失敗しました。ブラウザの制限の可能性があります。`));
+                }
+            });
+
             display.classList.add('visible');
+
+            try {
+                await playPromise;
+            } catch (e) {
+                console.error(e);
+            }
             
             await new Promise(resolve => {
-                sequenceTimeout = setTimeout(resolve, 16000); // 16秒待機
+                sequenceTimeout = setTimeout(resolve, 5000);
             });
         }
 
@@ -315,6 +391,9 @@
         startButton.addEventListener('click', async () => {
             if (isRunning) return;
             
+            const tempAudio = new Audio();
+            tempAudio.play().catch(() => {});
+
             startButton.textContent = 'Loading...';
             startButton.disabled = true;
 
@@ -332,6 +411,13 @@
             } else {
                 startButton.textContent = 'エラーが発生しました';
             }
+        });
+
+        volumeSlider.addEventListener('input', (e) => {
+            volumeLevel = e.target.value;
+            currentAudio.forEach(audio => {
+                if(audio) audio.volume = volumeLevel;
+            });
         });
     </script>
 </body>
