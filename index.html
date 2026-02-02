@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>モダンポジティブ解釈小倉百人一首 v1.1</title>
+    <title>モダンポジティブ解釈小倉百人一首 v1.11</title>
     <style>
         :root {
             --fade-duration: 2.5s;
@@ -386,13 +386,6 @@
             }
         }
 
-        function skipToNext(event) {
-            if (!isRunning || event.target.closest('footer, #volume-control')) return;
-            clearTimeout(sequenceTimeout);
-            stopCurrentAudio();
-            sequence();
-        }
-
         startButton.addEventListener('click', async () => {
             if (isRunning) return;
             
@@ -412,14 +405,11 @@
                 setTimeout(() => {
                     startButton.style.display = 'none';
                 }, 500);
-                container.style.cursor = 'pointer';
                 sequence();
             } else {
                 startButton.textContent = 'エラーが発生しました';
             }
         });
-
-        container.addEventListener('click', skipToNext);
 
         volumeSlider.addEventListener('input', (e) => {
             volumeLevel = e.target.value;
