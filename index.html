@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,20 +47,31 @@
 
         #container {
             display: flex;
-            flex-direction: column; /* 縦並びに変更 */
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             width: 100%;
             height: 100%;
             position: relative;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         #main-title {
             font-size: 3.5vw;
             color: #fff;
             text-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             text-align: center;
+        }
+        
+        .description {
+            font-size: 1vw;
+            color: #aaa;
+            max-width: 800px;
+            text-align: center;
+            line-height: 1.7;
+            margin-top: 30px;
         }
 
         #start-button {
@@ -71,6 +84,7 @@
             border-radius: 10px;
             transition: background-color 0.3s, transform 0.3s;
             text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            margin-top: 30px;
         }
 
         #start-button:hover {
@@ -86,7 +100,7 @@
             opacity: 0;
             filter: blur(20px);
             transition: opacity var(--fade-duration) ease-in-out, filter var(--fade-duration) ease-in-out;
-            pointer-events: none; /* テキストがクリックイベントを奪わないように */
+            pointer-events: none;
         }
 
         #karuta-display.visible {
@@ -97,7 +111,7 @@
         #karuta-display p {
             margin: 0;
             opacity: 0;
-            white-space: pre-wrap; /* 改行を反映 */
+            white-space: pre-wrap;
             text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
         }
 
@@ -170,8 +184,31 @@
             border-radius: 50%;
         }
 
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #888;
+            z-index: 100;
+        }
+
+        footer a {
+            color: #aaa;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
         @media (max-width: 768px) {
             #main-title { font-size: 6vw; }
+            .description { font-size: 2.5vw; }
             #number { font-size: 7vw; }
             #waka { font-size: 8vw; }
             #gendaigo, #positive { font-size: 4.5vw; }
@@ -191,11 +228,21 @@
         </div>
         <h1 id="main-title">モダンポジティブ解釈小倉百人一首</h1>
         <button id="start-button">Start</button>
+        <p class="description">
+            これは作業BGM的スクリーンセーバーwebアプリ。<br>
+            百人一首が好きだ。だけど現代に伝わる一般的な解釈は、ことさらに言葉の裏を読んでメランコリックになったり厭世的になったり、ネガティブなものが多すぎる。<br>
+            いいじゃん、この素晴らしい文学からポジティブなニュアンスだけ摂取しても。もしかしたら詠んだ当人だって、そこまでネガティブなニュアンスは意図してなかったのかもしれないよ。
+        </p>
     </div>
 
     <div id="volume-control">
         <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1">
     </div>
+
+    <footer>
+        <a href="https://x.com/qurihara" target="_blank" rel="noopener noreferrer">© Kazutaka Kurihara</a>
+        <a href="https://github.com/qurihara/alt_hyakunin_isshu" target="_blank" rel="noopener noreferrer">Github Repository</a>
+    </footer>
 
     <script>
         const karutaData = [];
@@ -204,6 +251,7 @@
         const container = document.getElementById('container');
         const mainTitle = document.getElementById('main-title');
         const startButton = document.getElementById('start-button');
+        const description = document.querySelector('.description');
         const display = document.getElementById('karuta-display');
         const numberEl = document.getElementById('number');
         const wakaEl = document.getElementById('waka');
@@ -226,11 +274,9 @@
                     throw new Error(`CSVの読み込みに失敗しました: ${response.statusText}`);
                 }
                 const text = await response.text();
-                // BOMの除去
                 const textWithoutBom = text.charCodeAt(0) === 0xFEFF ? text.substring(1) : text;
-                const lines = textWithoutBom.split('\n').slice(1); // ヘッダーをスキップ
+                const lines = textWithoutBom.split('\n').slice(1);
 
-                // 序歌のデータを手動で追加
                 karutaData.push({
                     number: '0',
                     waka: '難波津に\n咲くやこの花\n冬ごもり\n今は春べと\n咲くやこの花',
@@ -252,7 +298,7 @@
                         }
                     }
                 });
-                 if (karutaData.length <= 1) { // 序歌のみはNG
+                 if (karutaData.length <= 1) {
                     throw new Error('CSVデータが空か、パースに失敗しました。');
                 }
             } catch (error) {
@@ -268,7 +314,7 @@
             currentAudio.forEach(audio => {
                 if (audio) {
                     audio.pause();
-                    audio.src = ''; // メモリ解放
+                    audio.src = '';
                 }
             });
             currentAudio = [];
@@ -309,18 +355,16 @@
                 await playPromise;
             } catch (e) {
                 console.error(e);
-                // エラーが発生しても続行
             }
             
             await new Promise(resolve => {
-                sequenceTimeout = setTimeout(resolve, 5000); // 5秒の待機
+                sequenceTimeout = setTimeout(resolve, 5000);
             });
         }
 
         async function sequence() {
             if (!isRunning) return;
 
-            // フェードアウト
             display.classList.remove('visible');
             await new Promise(resolve => setTimeout(resolve, parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fade-duration')) * 1000));
 
@@ -342,8 +386,8 @@
             }
         }
 
-        function skipToNext() {
-            if (!isRunning) return;
+        function skipToNext(event) {
+            if (!isRunning || event.target.closest('footer, #volume-control')) return;
             clearTimeout(sequenceTimeout);
             stopCurrentAudio();
             sequence();
@@ -362,6 +406,7 @@
             if (loaded) {
                 isRunning = true;
                 mainTitle.style.display = 'none';
+                description.style.display = 'none';
                 startButton.style.transition = 'opacity 0.5s';
                 startButton.style.opacity = '0';
                 setTimeout(() => {
