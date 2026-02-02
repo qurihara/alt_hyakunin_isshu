@@ -366,7 +366,9 @@
             if (!isRunning) return;
 
             display.classList.remove('visible');
-            await new Promise(resolve => setTimeout(resolve, parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fade-duration')) * 1000));
+            
+            const fadeOutDuration = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fade-duration')) * 1000;
+            await new Promise(resolve => setTimeout(resolve, fadeOutDuration));
 
             let karuta;
             if (isFirstPlay) {
