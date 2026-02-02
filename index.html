@@ -126,8 +126,8 @@
         #karuta-display.visible #positive { animation-delay: calc(var(--text-delay-step) * 3.4); }
 
         #number {
-            font-size: 4vw;
-            margin-bottom: 2vh;
+            font-size: 2.0vw;
+            margin-bottom: 1vh;
             color: #aaa;
         }
         #waka {
@@ -209,7 +209,7 @@
         @media (max-width: 768px) {
             #main-title { font-size: 6vw; }
             .description { font-size: 2.5vw; }
-            #number { font-size: 7vw; }
+            #number { font-size: 4vw; }
             #waka { font-size: 8vw; }
             #gendaigo, #positive { font-size: 4.5vw; }
             .caption { font-size: 3.5vw; }
@@ -281,7 +281,7 @@
                     number: '0',
                     waka: '難波津に\n咲くやこの花\n冬ごもり\n今は春べと\n咲くやこの花',
                     gendaigo: '難波津に、冬の間は籠っていた花が咲いている。さあ、春になったのだと、花が咲いているよ。',
-                    positive: '長い冬が終わり、ついに春が来た！待ちわびた花が咲き誇るように、あなたの才能も今こそ開花の時です。'
+                    positive: '長い冬が終わり、ついに春が来た！待ちわびた花が咲き誇るように、あなたも今こそ開花の時です。'
                 });
 
                 lines.forEach(line => {
@@ -324,7 +324,7 @@
             stopCurrentAudio();
             const paddedNumber = karuta.number.padStart(3, '0');
 
-            numberEl.textContent = karuta.number === '0' ? '序歌' : `歌番号 ${karuta.number}`;
+            numberEl.textContent = karuta.number === '0' ? '序歌' : `#${karuta.number}`;
             wakaEl.textContent = karuta.waka;
             gendaigoCaptionEl.textContent = '【一般的なニュアンス】';
             gendaigoEl.textContent = karuta.gendaigo;
