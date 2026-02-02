@@ -1,0 +1,388 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>モダンポジティブ解釈小倉百人一首</title>
+    <style>
+        :root {
+            --fade-duration: 2.5s;
+            --text-delay-step: 2s;
+        }
+
+        @keyframes background-pan {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes text-fade-in {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+                filter: blur(15px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            color: #e0e0e0;
+            font-family: 'serif', 'MS Mincho', 'Hiragino Mincho ProN', sans-serif;
+            overflow: hidden;
+        }
+        
+        body {
+            background: linear-gradient(270deg, #0a0a1a, #1a0a1a, #0a1a0a);
+            background-size: 600% 600%;
+            animation: background-pan 30s ease infinite;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column; /* 縦並びに変更 */
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        #main-title {
+            font-size: 3.5vw;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        #start-button {
+            padding: 20px 40px;
+            font-size: 2rem;
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid #fff;
+            border-radius: 10px;
+            transition: background-color 0.3s, transform 0.3s;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        #start-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        #karuta-display {
+            position: absolute;
+            width: 90%;
+            max-width: 1200px;
+            text-align: center;
+            opacity: 0;
+            filter: blur(20px);
+            transition: opacity var(--fade-duration) ease-in-out, filter var(--fade-duration) ease-in-out;
+            pointer-events: none; /* テキストがクリックイベントを奪わないように */
+        }
+
+        #karuta-display.visible {
+            opacity: 1;
+            filter: blur(0);
+        }
+
+        #karuta-display p {
+            margin: 0;
+            opacity: 0;
+            white-space: pre-wrap; /* 改行を反映 */
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+
+        #karuta-display.visible p {
+            animation: text-fade-in 2s ease-out forwards;
+        }
+
+        #karuta-display.visible #waka { animation-delay: var(--text-delay-step); }
+        #karuta-display.visible #gendaigo_caption { animation-delay: calc(var(--text-delay-step) * 2); }
+        #karuta-display.visible #gendaigo { animation-delay: calc(var(--text-delay-step) * 2.2); }
+        #karuta-display.visible #positive_caption { animation-delay: calc(var(--text-delay-step) * 3.2); }
+        #karuta-display.visible #positive { animation-delay: calc(var(--text-delay-step) * 3.4); }
+
+        #number {
+            font-size: 4vw;
+            margin-bottom: 2vh;
+            color: #aaa;
+        }
+        #waka {
+            font-size: 5vw;
+            font-weight: bold;
+            margin-bottom: 4vh;
+            line-height: 1.6;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+        }
+        #gendaigo, #positive {
+            font-size: 2.2vw;
+            margin-top: 1vh;
+            line-height: 1.8;
+            color: #ccc;
+        }
+        
+        .caption {
+            font-size: 1.8vw;
+            color: #999;
+            margin-top: 3vh;
+            margin-bottom: 0;
+        }
+
+        #volume-control {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            opacity: 0.3;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+
+        #volume-control:hover {
+            opacity: 1;
+        }
+
+        #volume-slider {
+            -webkit-appearance: none;
+            width: 100px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        #volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 768px) {
+            #main-title { font-size: 6vw; }
+            #number { font-size: 7vw; }
+            #waka { font-size: 8vw; }
+            #gendaigo, #positive { font-size: 4.5vw; }
+            .caption { font-size: 3.5vw; }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="karuta-display">
+            <p id="number"></p>
+            <p id="waka"></p>
+            <p class="caption" id="gendaigo_caption"></p>
+            <p id="gendaigo"></p>
+            <p class="caption" id="positive_caption"></p>
+            <p id="positive"></p>
+        </div>
+        <h1 id="main-title">モダンポジティブ解釈小倉百人一首</h1>
+        <button id="start-button">Start</button>
+    </div>
+
+    <div id="volume-control">
+        <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1">
+    </div>
+
+    <script>
+        const karutaData = [];
+        const csvPath = './小倉百人一首現代解釈.csv';
+
+        const container = document.getElementById('container');
+        const mainTitle = document.getElementById('main-title');
+        const startButton = document.getElementById('start-button');
+        const display = document.getElementById('karuta-display');
+        const numberEl = document.getElementById('number');
+        const wakaEl = document.getElementById('waka');
+        const gendaigoCaptionEl = document.getElementById('gendaigo_caption');
+        const gendaigoEl = document.getElementById('gendaigo');
+        const positiveCaptionEl = document.getElementById('positive_caption');
+        const positiveEl = document.getElementById('positive');
+        const volumeSlider = document.getElementById('volume-slider');
+
+        let isRunning = false;
+        let isFirstPlay = true;
+        let currentAudio = [];
+        let volumeLevel = 1;
+        let sequenceTimeout;
+
+        async function loadData() {
+            try {
+                const response = await fetch(csvPath);
+                if (!response.ok) {
+                    throw new Error(`CSVの読み込みに失敗しました: ${response.statusText}`);
+                }
+                const text = await response.text();
+                // BOMの除去
+                const textWithoutBom = text.charCodeAt(0) === 0xFEFF ? text.substring(1) : text;
+                const lines = textWithoutBom.split('\n').slice(1); // ヘッダーをスキップ
+
+                // 序歌のデータを手動で追加
+                karutaData.push({
+                    number: '0',
+                    waka: '難波津に\n咲くやこの花\n冬ごもり\n今は春べと\n咲くやこの花',
+                    gendaigo: '難波津に、冬の間は籠っていた花が咲いている。さあ、春になったのだと、花が咲いているよ。',
+                    positive: '長い冬が終わり、ついに春が来た！待ちわびた花が咲き誇るように、あなたの才能も今こそ開花の時です。'
+                });
+
+                lines.forEach(line => {
+                    const columns = line.split(',');
+                    if (columns.length >= 4) {
+                        const [num, waka, gendaigo, positive] = columns;
+                        if (num && waka) {
+                            karutaData.push({
+                                number: num.trim(),
+                                waka: waka.trim().replace(/ /g, '\n'),
+                                gendaigo: gendaigo.trim(),
+                                positive: positive.trim()
+                            });
+                        }
+                    }
+                });
+                 if (karutaData.length <= 1) { // 序歌のみはNG
+                    throw new Error('CSVデータが空か、パースに失敗しました。');
+                }
+            } catch (error) {
+                console.error(error);
+                display.innerHTML = `<p style="opacity:1; color:red;">${error.message}</p>`;
+                display.classList.add('visible');
+                return false;
+            }
+            return true;
+        }
+        
+        function stopCurrentAudio() {
+            currentAudio.forEach(audio => {
+                if (audio) {
+                    audio.pause();
+                    audio.src = ''; // メモリ解放
+                }
+            });
+            currentAudio = [];
+        }
+
+        async function playKaruta(karuta) {
+            stopCurrentAudio();
+            const paddedNumber = karuta.number.padStart(3, '0');
+
+            numberEl.textContent = karuta.number === '0' ? '序歌' : `歌番号 ${karuta.number}`;
+            wakaEl.textContent = karuta.waka;
+            gendaigoCaptionEl.textContent = '【一般的な現代語訳】';
+            gendaigoEl.textContent = karuta.gendaigo;
+            positiveCaptionEl.textContent = '【モダンポジティブ解釈】';
+            positiveEl.textContent = karuta.positive;
+
+            const audioA = new Audio(`sounds/I-${paddedNumber}A.mp3`);
+            const audioB = new Audio(`sounds/I-${paddedNumber}B.mp3`);
+            audioA.volume = volumeLevel;
+            audioB.volume = volumeLevel;
+            currentAudio = [audioA, audioB];
+
+            const playPromise = new Promise((resolve, reject) => {
+                audioA.onended = () => audioB.play().catch(reject);
+                audioB.onended = resolve;
+                audioA.onerror = (e) => reject(`音声ファイル(A)の読み込みに失敗: I-${paddedNumber}A.mp3`);
+                audioB.onerror = (e) => reject(`音声ファイル(B)の読み込みに失敗: I-${paddedNumber}B.mp3`);
+                
+                const playResult = audioA.play();
+                if (playResult !== undefined) {
+                    playResult.catch(e => reject(`音声の再生に失敗しました。ブラウザの制限の可能性があります。`));
+                }
+            });
+
+            display.classList.add('visible');
+
+            try {
+                await playPromise;
+            } catch (e) {
+                console.error(e);
+                // エラーが発生しても続行
+            }
+            
+            await new Promise(resolve => {
+                sequenceTimeout = setTimeout(resolve, 5000); // 5秒の待機
+            });
+        }
+
+        async function sequence() {
+            if (!isRunning) return;
+
+            // フェードアウト
+            display.classList.remove('visible');
+            await new Promise(resolve => setTimeout(resolve, parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fade-duration')) * 1000));
+
+            let karuta;
+            if (isFirstPlay) {
+                karuta = karutaData.find(k => k.number === '0');
+                isFirstPlay = false;
+            } else {
+                const regularKaruta = karutaData.slice(1);
+                karuta = regularKaruta[Math.floor(Math.random() * regularKaruta.length)];
+            }
+            
+            if (karuta) {
+                await playKaruta(karuta);
+            }
+
+            if (isRunning) {
+                sequence();
+            }
+        }
+
+        function skipToNext() {
+            if (!isRunning) return;
+            clearTimeout(sequenceTimeout);
+            stopCurrentAudio();
+            sequence();
+        }
+
+        startButton.addEventListener('click', async () => {
+            if (isRunning) return;
+            
+            const tempAudio = new Audio();
+            tempAudio.play().catch(() => {});
+
+            startButton.textContent = '読み込み中...';
+            startButton.disabled = true;
+
+            const loaded = await loadData();
+            if (loaded) {
+                isRunning = true;
+                mainTitle.style.display = 'none';
+                startButton.style.transition = 'opacity 0.5s';
+                startButton.style.opacity = '0';
+                setTimeout(() => {
+                    startButton.style.display = 'none';
+                }, 500);
+                container.style.cursor = 'pointer';
+                sequence();
+            } else {
+                startButton.textContent = 'エラーが発生しました';
+            }
+        });
+
+        container.addEventListener('click', skipToNext);
+
+        volumeSlider.addEventListener('input', (e) => {
+            volumeLevel = e.target.value;
+            currentAudio.forEach(audio => {
+                if(audio) audio.volume = volumeLevel;
+            });
+        });
+    </script>
+</body>
+</html>
+
