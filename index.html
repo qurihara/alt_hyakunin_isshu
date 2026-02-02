@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>モダンポジティブ解釈小倉百人一首 v1.12</title>
+    <title>モダンポジティブ小倉百人一首 v1.15</title>
     <style>
         :root {
-            --fade-duration: 2.5s;
+            --fade-duration: 1.5s;
             --text-delay-step: 2s;
         }
 
@@ -43,6 +43,24 @@
             background: linear-gradient(270deg, #0a0a1a, #1a0a1a, #0a1a0a);
             background-size: 600% 600%;
             animation: background-pan 30s ease infinite;
+        }
+
+        #fade-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0a0a1a;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 99;
+            transition: opacity 1.5s ease;
+        }
+
+        #fade-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         #container {
@@ -98,14 +116,12 @@
             max-width: 1200px;
             text-align: center;
             opacity: 0;
-            filter: blur(20px);
-            transition: opacity var(--fade-duration) ease-in-out, filter var(--fade-duration) ease-in-out;
+            transition: opacity 1.5s ease;
             pointer-events: none;
         }
 
         #karuta-display.visible {
             opacity: 1;
-            filter: blur(0);
         }
 
         #karuta-display p {
@@ -185,6 +201,8 @@
     </style>
 </head>
 <body>
+    <div id="fade-overlay"></div>
+
     <div id="container">
         <div id="karuta-display">
             <p id="number"></p>
@@ -194,11 +212,11 @@
             <p class="caption" id="positive_caption"></p>
             <p id="positive"></p>
         </div>
-        <h1 id="main-title">モダンポジティブ解釈小倉百人一首</h1>
+        <h1 id="main-title">モダンポジティブ小倉百人一首</h1>
         <button id="start-button">Start</button>
         <p class="description">
-            これは作業BGM的スクリーンセーバーwebアプリ。<br>
-            百人一首が好きだ。だけど現代に伝わる一般的な解釈は、ことさらに言葉の裏を読んでメランコリックになったり厭世的になったり、ネガティブなものが多すぎる。<br>
+            これは作業用スクリーンセーバーwebアプリ。<br>
+            百人一首が好きだ。だけど現代に伝わる一般的な解釈は、ことさらに言葉の裏を想像してメランコリックになったり厭世的になったり、ネガティブなものが多すぎる。<br>
             いいじゃん、この素晴らしい文学からポジティブなニュアンスだけ摂取しても。もしかしたら詠んだ当人だって、そこまで後ろ向きなニュアンスは意図してなかったのかもしれないよ。AIに小倉百人一首を前向きに解釈してもらって、晴れやかに楽しもう！
         </p>
     </div>
@@ -223,6 +241,8 @@
         const gendaigoEl = document.getElementById('gendaigo');
         const positiveCaptionEl = document.getElementById('positive_caption');
         const positiveEl = document.getElementById('positive');
+        
+        const fadeOverlay = document.getElementById('fade-overlay');
 
         let isRunning = false;
         let isFirstPlay = true;
@@ -271,41 +291,49 @@
             return true;
         }
         
-        async function playKaruta(karuta) {
+        function setKarutaText(karuta) {
             numberEl.textContent = karuta.number === '0' ? '序歌' : `#${karuta.number}`;
             wakaEl.textContent = karuta.waka;
             gendaigoCaptionEl.textContent = '【一般的なニュアンス】';
             gendaigoEl.textContent = karuta.gendaigo;
             positiveCaptionEl.textContent = '【モダンポジティブ解釈】';
             positiveEl.textContent = karuta.positive;
-
-            display.classList.add('visible');
-            
-            await new Promise(resolve => {
-                sequenceTimeout = setTimeout(resolve, 16000); // 16秒待機
-            });
         }
 
         async function sequence() {
             if (!isRunning) return;
 
-            display.classList.remove('visible');
-            
-            const fadeOutDuration = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fade-duration')) * 1000;
-            await new Promise(resolve => setTimeout(resolve, fadeOutDuration));
+            if (!isFirstPlay) {
+                fadeOverlay.classList.add('visible');
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                display.classList.remove('visible');
+            }
 
             let karuta;
             if (isFirstPlay) {
                 karuta = karutaData.find(k => k.number === '0');
-                isFirstPlay = false;
             } else {
                 const regularKaruta = karutaData.slice(1);
                 karuta = regularKaruta[Math.floor(Math.random() * regularKaruta.length)];
             }
             
             if (karuta) {
-                await playKaruta(karuta);
+                setKarutaText(karuta);
             }
+
+            if (isFirstPlay) {
+                isFirstPlay = false;
+                display.classList.add('visible'); 
+            } else {
+                fadeOverlay.classList.remove('visible');
+                setTimeout(() => {
+                    display.classList.add('visible');
+                }, 100);
+            }
+            
+            await new Promise(resolve => {
+                sequenceTimeout = setTimeout(resolve, 16000);
+            });
 
             if (isRunning) {
                 sequence();
@@ -336,4 +364,3 @@
     </script>
 </body>
 </html>
-
