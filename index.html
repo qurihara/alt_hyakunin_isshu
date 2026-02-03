@@ -334,7 +334,7 @@
             }
             
             await new Promise(resolve => {
-                sequenceTimeout = setTimeout(resolve, 16000);
+                sequenceTimeout = setTimeout(resolve, 20000);
             });
 
             if (isRunning) {
@@ -345,21 +345,28 @@
         startButton.addEventListener('click', async () => {
             if (isRunning) return;
             
-            startButton.textContent = 'Loading...';
+            // ボタンを操作不能にし、即座にフェードアウトを開始
             startButton.disabled = true;
+            startButton.style.transition = 'opacity 0.5s';
+            startButton.style.opacity = '0';
+            
+            // フェードアウト完了後に display:none にする
+            setTimeout(() => {
+                startButton.style.display = 'none';
+            }, 500);
 
             const loaded = await loadData();
+
             if (loaded) {
                 isRunning = true;
                 mainTitle.style.display = 'none';
                 description.style.display = 'none';
-                startButton.style.transition = 'opacity 0.5s';
-                startButton.style.opacity = '0';
-                setTimeout(() => {
-                    startButton.style.display = 'none';
-                }, 500);
                 sequence();
             } else {
+                // エラーが起きたら元に戻す
+                startButton.style.display = 'block'; // 再表示
+                startButton.disabled = false;
+                startButton.style.opacity = '1';
                 startButton.textContent = 'エラーが発生しました';
             }
         });
