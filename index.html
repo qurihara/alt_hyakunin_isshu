@@ -294,9 +294,14 @@
                     if (columns.length >= 7) {
                         const [num, kajin, waka, gendaigo, , , positive_y] = columns;
                         if (num && num.trim()) {
+                            const wakaParts = waka.trim().split(/\s+/);
+                            const newWaka = (wakaParts.length === 5)
+                                ? [ wakaParts[0], `${wakaParts[1]} ${wakaParts[2]}`, wakaParts[3], wakaParts[4] ].join('\n')
+                                : waka.trim().replace(/ /g, '\n');
+
                             wakaMap.set(num.trim(), { 
                                 kajin: kajin.trim(),
-                                waka: waka.trim().replace(/ /g, '\n'),
+                                waka: newWaka,
                                 gendaigo: gendaigo.trim(),
                                 positive_y: positive_y.trim()
                             });
@@ -307,10 +312,10 @@
                 karutaData.push({
                     number: '0',
                     kajin: '王仁',
-                    waka: '難波津に\n咲くやこの花\n冬ごもり\n今は春べと\n咲くやこの花',
+                    waka: '難波津に\n咲くやこの花 冬ごもり\n今は春べと\n咲くやこの花',
                     gendaigo: '難波津に、冬の間は籠っていた花が咲いている。さあ、春になったのだと、花が咲いているよ。',
                     positive_x: '長い冬が終わり、ついに春が来た！待ちわびた花が咲き誇るように、あなたも今こそ開花の時です。',
-                    positive_y: '長い冬が終わり、ついに春が来た！待ちわびた花が咲き誇るように、あなたも今こそ開花の時です。'
+                    positive_y: '厳しい冬を耐え抜いた花が、春の訪れと共に一斉に咲き誇るように、あなたの努力も必ず開花の時を迎えます。希望を持って、新しい季節の一歩を踏み出しましょう。'
                 });
 
                 lines1.forEach(line => {
@@ -347,9 +352,9 @@
             numberEl.textContent = karuta.number === '0' ? '序歌' : `#${karuta.number}`;
             kajinEl.textContent = karuta.kajin;
             wakaEl.textContent = karuta.waka;
-            gendaigoCaptionEl.textContent = '【一般的なニュアンス】';
+            gendaigoCaptionEl.textContent = '【一般的な現代語訳】';
             gendaigoEl.textContent = karuta.gendaigo;
-            positiveXCaptionEl.textContent = '【情熱的モダンポジティブ解釈】';
+            positiveXCaptionEl.textContent = '【情熱モダンポジティブ解釈】';
             positiveXEl.textContent = karuta.positive_x;
             positiveYCaptionEl.textContent = '【おだやかモダンポジティブ解釈】';
             positiveYEl.textContent = karuta.positive_y;
