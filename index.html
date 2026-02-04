@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>モダンポジティブ小倉百人一首 v1.18</title>
+    <title>モダンポジティブ小倉百人一首 v1.20</title>
     <style>
         :root {
             --fade-duration: 1.5s;
@@ -92,6 +92,69 @@
             margin-top: 30px;
         }
 
+        #options-container {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .option {
+            display: flex;
+            align-items: center;
+            font-size: 1.1rem;
+            color: #ccc;
+        }
+        .option input[type="checkbox"] {
+            /* 元のチェックボックスを隠す */
+            opacity: 0;
+            position: absolute;
+            width: 0;
+            height: 0;
+        }
+        .option label {
+            position: relative;
+            padding-left: 30px; /* チェックボックス用のスペース */
+            cursor: pointer;
+        }
+        /* チェックボックスの枠を作成 */
+        .option label::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            border: 1px solid #888; /* 枠の色を灰色に */
+            border-radius: 3px;
+            background-color: rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+        }
+        /* チェックされたときの枠のスタイル */
+        .option input:checked + label::before {
+            background-color: #888; /* チェックされたら背景を灰色に */
+            border-color: #aaa;
+        }
+        /* チェックマークを作成 */
+        .option input:checked + label::after {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 50%;
+            width: 4px;
+            height: 9px;
+            border: solid #fff; /* チェックマークの色を白に */
+            border-width: 0 2px 2px 0;
+            transform: translateY(-65%) rotate(45deg); /* 位置と角度を調整 */
+        }
+        .option:hover label::before {
+            border-color: #ccc;
+        }
+
         #start-button {
             padding: 20px 40px;
             font-size: 2rem;
@@ -102,7 +165,6 @@
             border-radius: 10px;
             transition: background-color 0.3s, transform 0.3s, opacity 0.5s;
             text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-            margin-top: 30px;
         }
 
         #start-button:hover {
@@ -136,12 +198,21 @@
         }
 
         #karuta-display.visible #waka { animation-delay: var(--text-delay-step); }
-        #karuta-display.visible #gendaigo_caption { animation-delay: calc(var(--text-delay-step) * 2); }
-        #karuta-display.visible #gendaigo { animation-delay: calc(var(--text-delay-step) * 2.2); }
-        #karuta-display.visible #positive_y_caption { animation-delay: calc(var(--text-delay-step) * 3.2); }
-        #karuta-display.visible #positive_y { animation-delay: calc(var(--text-delay-step) * 3.4); }
-        #karuta-display.visible #positive_x_caption { animation-delay: calc(var(--text-delay-step) * 4.4); }
-        #karuta-display.visible #positive_x { animation-delay: calc(var(--text-delay-step) * 4.6); }
+        
+        /* Default animation delays (with gendaigo) */
+        #karuta-display:not(.hide-gendaigo).visible #gendaigo_caption { animation-delay: calc(var(--text-delay-step) * 2); }
+        #karuta-display:not(.hide-gendaigo).visible #gendaigo { animation-delay: calc(var(--text-delay-step) * 2.2); }
+        #karuta-display:not(.hide-gendaigo).visible #positive_y_caption { animation-delay: calc(var(--text-delay-step) * 3.2); }
+        #karuta-display:not(.hide-gendaigo).visible #positive_y { animation-delay: calc(var(--text-delay-step) * 3.4); }
+        #karuta-display:not(.hide-gendaigo).visible #positive_x_caption { animation-delay: calc(var(--text-delay-step) * 4.4); }
+        #karuta-display:not(.hide-gendaigo).visible #positive_x { animation-delay: calc(var(--text-delay-step) * 4.6); }
+
+        /* Animation delays when gendaigo is hidden */
+        #karuta-display.hide-gendaigo.visible #positive_y_caption { animation-delay: calc(var(--text-delay-step) * 2); }
+        #karuta-display.hide-gendaigo.visible #positive_y { animation-delay: calc(var(--text-delay-step) * 2.2); }
+        #karuta-display.hide-gendaigo.visible #positive_x_caption { animation-delay: calc(var(--text-delay-step) * 3.2); }
+        #karuta-display.hide-gendaigo.visible #positive_x { animation-delay: calc(var(--text-delay-step) * 3.4); }
+
 
         #number {
             font-size: 1.8vw;
@@ -200,6 +271,8 @@
         @media (max-width: 768px) {
             #main-title { font-size: 6vw; }
             .description { font-size: 2.5vw; }
+            #options-container { padding: 15px; }
+            .option { font-size: 1rem; }
             #number { font-size: 3.5vw; }
             #kajin { font-size: 3.5vw; }
             #waka { font-size: 7vw; }
@@ -225,6 +298,16 @@
         </div>
         <h1 id="main-title">モダンポジティブ小倉百人一首</h1>
         <button id="start-button">Start</button>
+        <div id="options-container">
+            <div class="option">
+                <input type="checkbox" id="showGendaigoCheckbox">
+                <label for="showGendaigoCheckbox">一般的な現代語訳を添える</label>
+            </div>
+            <div class="option">
+                <input type="checkbox" id="randomOrderCheckbox">
+                <label for="randomOrderCheckbox">ランダム表示</label>
+            </div>
+        </div>
         <p class="description">
             これは作業用スクリーンセーバーwebアプリ。<br>
             百人一首が好きだ。だけど現代に伝わる一般的な解釈は、ことさらに言葉の裏を想像してメランコリックになったり厭世的になったり、ネガティブなものが多すぎる。<br>
@@ -248,6 +331,7 @@
         const mainTitle = document.getElementById('main-title');
         const startButton = document.getElementById('start-button');
         const description = document.querySelector('.description');
+        const optionsContainer = document.getElementById('options-container');
         const display = document.getElementById('karuta-display');
         const numberEl = document.getElementById('number');
         const kajinEl = document.getElementById('kajin');
@@ -260,11 +344,18 @@
         const positiveYEl = document.getElementById('positive_y');
         const footer = document.querySelector('footer');
         
+        const showGendaigoCheckbox = document.getElementById('showGendaigoCheckbox');
+        const randomOrderCheckbox = document.getElementById('randomOrderCheckbox');
+        
         const fadeOverlay = document.getElementById('fade-overlay');
 
         let isRunning = false;
         let isFirstPlay = true;
         let sequenceTimeout;
+        
+        let showGendaigo = false;
+        let isRandomOrder = false;
+        let currentIndex = 0;
 
         async function loadData() {
             try {
@@ -352,12 +443,21 @@
             numberEl.textContent = karuta.number === '0' ? '序歌' : `#${karuta.number}`;
             kajinEl.textContent = karuta.kajin;
             wakaEl.textContent = karuta.waka;
-            gendaigoCaptionEl.textContent = '【一般的な現代語訳】';
-            gendaigoEl.textContent = karuta.gendaigo;
-            positiveXCaptionEl.textContent = '【情熱モダンポジティブ解釈】';
-            positiveXEl.textContent = karuta.positive_x;
+            
+            if (showGendaigo) {
+                display.classList.remove('hide-gendaigo');
+                gendaigoCaptionEl.textContent = '【一般的なニュアンス】';
+                gendaigoEl.textContent = karuta.gendaigo;
+            } else {
+                display.classList.add('hide-gendaigo');
+                gendaigoCaptionEl.textContent = '';
+                gendaigoEl.textContent = '';
+            }
+
             positiveYCaptionEl.textContent = '【おだやかモダンポジティブ解釈】';
             positiveYEl.textContent = karuta.positive_y;
+            positiveXCaptionEl.textContent = '【情熱的モダンポジティブ解釈】';
+            positiveXEl.textContent = karuta.positive_x;
         }
 
         async function sequence() {
@@ -371,25 +471,28 @@
 
             let karuta;
             if (isFirstPlay) {
-                karuta = karutaData.find(k => k.number === '0');
-            } else {
+                karuta = karutaData[0];
+                currentIndex = 1;
+                isFirstPlay = false;
+            } else if (isRandomOrder) {
                 const regularKaruta = karutaData.slice(1);
                 karuta = regularKaruta[Math.floor(Math.random() * regularKaruta.length)];
+            } else {
+                karuta = karutaData[currentIndex];
+                currentIndex++;
+                if (currentIndex >= karutaData.length) {
+                    currentIndex = 1; // 100の次は1に戻る
+                }
             }
             
             if (karuta) {
                 setKarutaText(karuta);
             }
 
-            if (isFirstPlay) {
-                isFirstPlay = false;
-                display.classList.add('visible'); 
-            } else {
-                fadeOverlay.classList.remove('visible');
-                setTimeout(() => {
-                    display.classList.add('visible');
-                }, 100);
-            }
+            fadeOverlay.classList.remove('visible');
+            setTimeout(() => {
+                display.classList.add('visible');
+            }, 100);
             
             await new Promise(resolve => {
                 sequenceTimeout = setTimeout(resolve, 25000);
@@ -403,29 +506,27 @@
         startButton.addEventListener('click', async () => {
             if (isRunning) return;
             
-            // ボタンを操作不能にし、即座にフェードアウトを開始
-            startButton.disabled = true;
-            startButton.style.transition = 'opacity 0.5s';
-            startButton.style.opacity = '0';
-            
-            // フェードアウト完了後に display:none にする
-            setTimeout(() => {
-                startButton.style.display = 'none';
-            }, 500);
+            showGendaigo = showGendaigoCheckbox.checked;
+            isRandomOrder = randomOrderCheckbox.checked;
+
+            mainTitle.style.display = 'none';
+            description.style.display = 'none';
+            optionsContainer.style.display = 'none';
+            startButton.style.display = 'none';
+            footer.style.display = 'none';
 
             const loaded = await loadData();
 
             if (loaded) {
                 isRunning = true;
-                mainTitle.style.display = 'none';
-                description.style.display = 'none';
-                footer.style.display = 'none';
                 sequence();
             } else {
                 // エラーが起きたら元に戻す
-                startButton.style.display = 'block'; // 再表示
-                startButton.disabled = false;
-                startButton.style.opacity = '1';
+                mainTitle.style.display = 'block';
+                description.style.display = 'block';
+                optionsContainer.style.display = 'flex';
+                startButton.style.display = 'block';
+                footer.style.display = 'block';
                 startButton.textContent = 'エラーが発生しました';
             }
         });
