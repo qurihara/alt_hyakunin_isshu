@@ -300,11 +300,11 @@
         <button id="start-button">Start</button>
         <div id="options-container">
             <div class="option">
-                <input type="checkbox" id="showGendaigoCheckbox">
+                <input type="checkbox" id="showGendaigoCheckbox" checked>
                 <label for="showGendaigoCheckbox">一般的な現代語訳を添える</label>
             </div>
             <div class="option">
-                <input type="checkbox" id="randomOrderCheckbox">
+                <input type="checkbox" id="randomOrderCheckbox" checked>
                 <label for="randomOrderCheckbox">ランダム表示</label>
             </div>
         </div>
@@ -351,8 +351,8 @@
         let isFirstPlay = true;
         let sequenceTimeout;
         
-        let showGendaigo = false;
-        let isRandomOrder = false;
+        let showGendaigo = true;
+        let isRandomOrder = true;
         let currentIndex = 0;
 
         async function loadData() {
