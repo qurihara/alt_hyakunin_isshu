@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>モダンポジティブ小倉百人一首 v1.16</title>
+    <title>モダンポジティブ小倉百人一首 v1.18</title>
     <style>
         :root {
             --fade-duration: 1.5s;
-            --text-delay-step: 2s;
+            --text-delay-step: 1.8s;
         }
 
         @keyframes background-pan {
@@ -19,8 +19,8 @@
         @keyframes text-fade-in {
             0% {
                 opacity: 0;
-                transform: translateY(30px) scale(0.95);
-                filter: blur(15px);
+                transform: translateY(20px) scale(0.98);
+                filter: blur(10px);
             }
             100% {
                 opacity: 1;
@@ -100,7 +100,7 @@
             color: #fff;
             border: 1px solid #fff;
             border-radius: 10px;
-            transition: background-color 0.3s, transform 0.3s;
+            transition: background-color 0.3s, transform 0.3s, opacity 0.5s;
             text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
             margin-top: 30px;
         }
@@ -138,33 +138,40 @@
         #karuta-display.visible #waka { animation-delay: var(--text-delay-step); }
         #karuta-display.visible #gendaigo_caption { animation-delay: calc(var(--text-delay-step) * 2); }
         #karuta-display.visible #gendaigo { animation-delay: calc(var(--text-delay-step) * 2.2); }
-        #karuta-display.visible #positive_caption { animation-delay: calc(var(--text-delay-step) * 3.2); }
-        #karuta-display.visible #positive { animation-delay: calc(var(--text-delay-step) * 3.4); }
+        #karuta-display.visible #positive_y_caption { animation-delay: calc(var(--text-delay-step) * 3.2); }
+        #karuta-display.visible #positive_y { animation-delay: calc(var(--text-delay-step) * 3.4); }
+        #karuta-display.visible #positive_x_caption { animation-delay: calc(var(--text-delay-step) * 4.4); }
+        #karuta-display.visible #positive_x { animation-delay: calc(var(--text-delay-step) * 4.6); }
 
         #number {
-            font-size: 2.0vw;
-            margin-bottom: 1vh;
+            font-size: 1.8vw;
+            margin-bottom: 0.5vh;
             color: #aaa;
         }
+        #kajin {
+            font-size: 1.8vw;
+            margin-bottom: 2vh;
+            color: #bbb;
+        }
         #waka {
-            font-size: 5vw;
+            font-size: 4vw;
             font-weight: bold;
-            margin-bottom: 4vh;
+            margin-bottom: 3vh;
             line-height: 1.6;
             color: #fff;
             text-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
         }
-        #gendaigo, #positive {
-            font-size: 2.2vw;
-            margin-top: 1vh;
-            line-height: 1.8;
+        #gendaigo, #positive_x, #positive_y {
+            font-size: 1.6vw;
+            margin-top: 0.5vh;
+            line-height: 1.7;
             color: #ccc;
         }
         
         .caption {
-            font-size: 1.8vw;
+            font-size: 1.4vw;
             color: #999;
-            margin-top: 3vh;
+            margin-top: 2vh;
             margin-bottom: 0;
         }
 
@@ -193,10 +200,11 @@
         @media (max-width: 768px) {
             #main-title { font-size: 6vw; }
             .description { font-size: 2.5vw; }
-            #number { font-size: 4vw; }
-            #waka { font-size: 8vw; }
-            #gendaigo, #positive { font-size: 4.5vw; }
-            .caption { font-size: 3.5vw; }
+            #number { font-size: 3.5vw; }
+            #kajin { font-size: 3.5vw; }
+            #waka { font-size: 7vw; }
+            #gendaigo, #positive_x, #positive_y { font-size: 4vw; }
+            .caption { font-size: 3vw; }
         }
     </style>
 </head>
@@ -206,11 +214,14 @@
     <div id="container">
         <div id="karuta-display">
             <p id="number"></p>
+            <p id="kajin"></p>
             <p id="waka"></p>
             <p class="caption" id="gendaigo_caption"></p>
             <p id="gendaigo"></p>
-            <p class="caption" id="positive_caption"></p>
-            <p id="positive"></p>
+            <p class="caption" id="positive_y_caption"></p>
+            <p id="positive_y"></p>
+            <p class="caption" id="positive_x_caption"></p>
+            <p id="positive_x"></p>
         </div>
         <h1 id="main-title">モダンポジティブ小倉百人一首</h1>
         <button id="start-button">Start</button>
@@ -230,7 +241,8 @@
 
     <script>
         const karutaData = [];
-        const csvPath = './小倉百人一首現代解釈.csv';
+        const csvPath1 = './小倉百人一首現代解釈.csv';
+        const csvPath2 = './scripts/waka.csv';
 
         const container = document.getElementById('container');
         const mainTitle = document.getElementById('main-title');
@@ -238,11 +250,15 @@
         const description = document.querySelector('.description');
         const display = document.getElementById('karuta-display');
         const numberEl = document.getElementById('number');
+        const kajinEl = document.getElementById('kajin');
         const wakaEl = document.getElementById('waka');
         const gendaigoCaptionEl = document.getElementById('gendaigo_caption');
         const gendaigoEl = document.getElementById('gendaigo');
-        const positiveCaptionEl = document.getElementById('positive_caption');
-        const positiveEl = document.getElementById('positive');
+        const positiveXCaptionEl = document.getElementById('positive_x_caption');
+        const positiveXEl = document.getElementById('positive_x');
+        const positiveYCaptionEl = document.getElementById('positive_y_caption');
+        const positiveYEl = document.getElementById('positive_y');
+        const footer = document.querySelector('footer');
         
         const fadeOverlay = document.getElementById('fade-overlay');
 
@@ -252,35 +268,69 @@
 
         async function loadData() {
             try {
-                const response = await fetch(csvPath);
-                if (!response.ok) {
-                    throw new Error(`CSVの読み込みに失敗しました: ${response.statusText}`);
+                const [response1, response2] = await Promise.all([
+                    fetch(csvPath1),
+                    fetch(csvPath2)
+                ]);
+
+                if (!response1.ok || !response2.ok) {
+                    throw new Error('CSVの読み込みに失敗しました。');
                 }
-                const text = await response.text();
-                const textWithoutBom = text.charCodeAt(0) === 0xFEFF ? text.substring(1) : text;
-                const lines = textWithoutBom.split('\n').slice(1);
 
-                karutaData.push({
-                    number: '0',
-                    waka: '難波津に\n咲くやこの花\n冬ごもり\n今は春べと\n咲くやこの花',
-                    gendaigo: '難波津に、冬の間は籠っていた花が咲いている。さあ、春になったのだと、花が咲いているよ。',
-                    positive: '長い冬が終わり、ついに春が来た！待ちわびた花が咲き誇るように、あなたも今こそ開花の時です。'
-                });
+                const text1 = await response1.text();
+                const text2 = await response2.text();
+                
+                const parseCsv = (text) => {
+                    const textWithoutBom = text.charCodeAt(0) === 0xFEFF ? text.substring(1) : text;
+                    return textWithoutBom.split(/\r?\n/).slice(1);
+                };
 
-                lines.forEach(line => {
+                const lines1 = parseCsv(text1);
+                const lines2 = parseCsv(text2);
+
+                const wakaMap = new Map();
+                lines2.forEach(line => {
                     const columns = line.split(',');
-                    if (columns.length >= 4) {
-                        const [num, waka, gendaigo, positive] = columns;
-                        if (num && waka) {
-                            karutaData.push({
-                                number: num.trim(),
+                    if (columns.length >= 7) {
+                        const [num, kajin, waka, gendaigo, , , positive_y] = columns;
+                        if (num && num.trim()) {
+                            wakaMap.set(num.trim(), { 
+                                kajin: kajin.trim(),
                                 waka: waka.trim().replace(/ /g, '\n'),
                                 gendaigo: gendaigo.trim(),
-                                positive: positive.trim()
+                                positive_y: positive_y.trim()
                             });
                         }
                     }
                 });
+
+                karutaData.push({
+                    number: '0',
+                    kajin: '王仁',
+                    waka: '難波津に\n咲くやこの花\n冬ごもり\n今は春べと\n咲くやこの花',
+                    gendaigo: '難波津に、冬の間は籠っていた花が咲いている。さあ、春になったのだと、花が咲いているよ。',
+                    positive_x: '長い冬が終わり、ついに春が来た！待ちわびた花が咲き誇るように、あなたも今こそ開花の時です。',
+                    positive_y: '長い冬が終わり、ついに春が来た！待ちわびた花が咲き誇るように、あなたも今こそ開花の時です。'
+                });
+
+                lines1.forEach(line => {
+                    const columns = line.split(',');
+                    if (columns.length >= 4) {
+                        const [num, , , positive_x] = columns;
+                        const wakaInfo = wakaMap.get(num.trim());
+                        if (num && num.trim() && wakaInfo) {
+                            karutaData.push({
+                                number: num.trim(),
+                                kajin: wakaInfo.kajin,
+                                waka: wakaInfo.waka,
+                                gendaigo: wakaInfo.gendaigo,
+                                positive_x: positive_x.trim(),
+                                positive_y: wakaInfo.positive_y
+                            });
+                        }
+                    }
+                });
+
                  if (karutaData.length <= 1) {
                     throw new Error('CSVデータが空か、パースに失敗しました。');
                 }
@@ -295,11 +345,14 @@
         
         function setKarutaText(karuta) {
             numberEl.textContent = karuta.number === '0' ? '序歌' : `#${karuta.number}`;
+            kajinEl.textContent = karuta.kajin;
             wakaEl.textContent = karuta.waka;
             gendaigoCaptionEl.textContent = '【一般的なニュアンス】';
             gendaigoEl.textContent = karuta.gendaigo;
-            positiveCaptionEl.textContent = '【モダンポジティブ解釈】';
-            positiveEl.textContent = karuta.positive;
+            positiveXCaptionEl.textContent = '【情熱的モダンポジティブ解釈】';
+            positiveXEl.textContent = karuta.positive_x;
+            positiveYCaptionEl.textContent = '【おだやかモダンポジティブ解釈】';
+            positiveYEl.textContent = karuta.positive_y;
         }
 
         async function sequence() {
@@ -334,7 +387,7 @@
             }
             
             await new Promise(resolve => {
-                sequenceTimeout = setTimeout(resolve, 20000);
+                sequenceTimeout = setTimeout(resolve, 25000);
             });
 
             if (isRunning) {
@@ -361,6 +414,7 @@
                 isRunning = true;
                 mainTitle.style.display = 'none';
                 description.style.display = 'none';
+                footer.style.display = 'none';
                 sequence();
             } else {
                 // エラーが起きたら元に戻す
