@@ -322,6 +322,7 @@
     <footer>
         <a href="https://x.com/qurihara" target="_blank" rel="noopener noreferrer">© Kazutaka Kurihara</a>
         <a href="https://github.com/qurihara/alt_hyakunin_isshu" target="_blank" rel="noopener noreferrer">Github Repository</a>
+        <a href="#" id="twitter-share-link" target="_blank" rel="noopener noreferrer">Xで共有</a>
     </footer>
 
     <script>
@@ -345,6 +346,8 @@
         const positiveYCaptionEl = document.getElementById('positive_y_caption');
         const positiveYEl = document.getElementById('positive_y');
         const footer = document.querySelector('footer');
+        const twitterShareLink = document.getElementById('twitter-share-link');
+        const siteURL = 'https://qurihara.github.io/alt_hyakunin_isshu/';
         
         const showGendaigoCheckbox = document.getElementById('showGendaigoCheckbox');
         const randomOrderCheckbox = document.getElementById('randomOrderCheckbox');
@@ -358,6 +361,35 @@
         let showGendaigo = true;
         let isRandomOrder = true;
         let currentIndex = 0;
+
+        function updateTwitterLink(karuta = null) {
+            let text;
+            const hashtag = '#令和ポジティブ解釈百人一首';
+            // 歌が表示されている場合（序歌を除く）
+            if (karuta && karuta.number !== '0') {
+                const wakaText = karuta.waka.replace(/\n/g, ' ');
+                const interpretation = karuta.positive_x; // 令和情熱ポジティブ解釈
+                const baseText = `「${wakaText}」(${karuta.kajin})\n\n【令和ポジティブ解釈】\n${interpretation}\n\n${hashtag}`;
+
+                const maxLength = 280;
+                const urlLength = 23; // t.coリンクのおおよその長さ
+                const overhead = baseText.length - interpretation.length;
+
+                // 文字数が制限を超えるかチェック
+                if (baseText.length > maxLength - urlLength) {
+                    const maxInterpretationLength = maxLength - urlLength - overhead - 1; // "…"の1文字を考慮
+                    const truncatedInterpretation = interpretation.substring(0, maxInterpretationLength) + '…';
+                    text = `「${wakaText}」(${karuta.kajin})\n\n【令和ポジティブ解釈】\n${truncatedInterpretation}\n\n${hashtag}`;
+                } else {
+                    text = baseText;
+                }
+            } else {
+                // タイトル画面または序歌の場合
+                text = `令和のポジティブ解釈百人一首で、古典和歌を新しい視点から楽しもう！\n\n${hashtag}`;
+            }
+            const twitterURL = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(siteURL)}`;
+            twitterShareLink.href = twitterURL;
+        }
 
         async function loadData() {
             try {
@@ -438,6 +470,7 @@
                 display.classList.add('visible');
                 return false;
             }
+            updateTwitterLink(); // 初期表示用のTwitterリンクを設定
             return true;
         }
         
@@ -460,6 +493,8 @@
             positiveYEl.textContent = karuta.positive_y;
             positiveXCaptionEl.textContent = '【令和情熱ポジティブ解釈】';
             positiveXEl.textContent = karuta.positive_x;
+            
+            updateTwitterLink(karuta); // 表示された歌に合わせてTwitterリンクを更新
         }
 
         async function sequence() {
@@ -515,20 +550,20 @@
             description.style.display = 'none';
             optionsContainer.style.display = 'none';
             startButton.style.display = 'none';
-            footer.style.display = 'none';
+            // footerは常に表示するため、非表示にする処理は不要
 
             const loaded = await loadData();
 
             if (loaded) {
                 isRunning = true;
                 sequence();
-            } else {
+            }
+            else {
                 // エラーが起きたら元に戻す
                 mainTitle.style.display = 'block';
                 description.style.display = 'block';
                 optionsContainer.style.display = 'flex';
                 startButton.style.display = 'block';
-                footer.style.display = 'block';
                 startButton.textContent = 'エラーが発生しました';
             }
         });
