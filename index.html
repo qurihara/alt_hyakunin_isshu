@@ -364,12 +364,12 @@
 
         function updateTwitterLink(karuta = null) {
             let text;
-            const hashtag = '#令和ポジティブ解釈百人一首';
+            const hashtag = '#令和のポジティブ解釈百人一首';
             // 歌が表示されている場合（序歌を除く）
             if (karuta && karuta.number !== '0') {
                 const wakaText = karuta.waka.replace(/\n/g, ' ');
                 const interpretation = karuta.positive_x; // 令和情熱ポジティブ解釈
-                const baseText = `「${wakaText}」(${karuta.kajin})\n\n【令和ポジティブ解釈】\n${interpretation}\n\n${hashtag}`;
+                const baseText = `【${karuta.number}番】\n「${wakaText}」(${karuta.kajin})\n\n【令和ポジティブ解釈】\n${interpretation}\n\n${hashtag}`;
 
                 const maxLength = 280;
                 const urlLength = 23; // t.coリンクのおおよその長さ
@@ -379,13 +379,13 @@
                 if (baseText.length > maxLength - urlLength) {
                     const maxInterpretationLength = maxLength - urlLength - overhead - 1; // "…"の1文字を考慮
                     const truncatedInterpretation = interpretation.substring(0, maxInterpretationLength) + '…';
-                    text = `「${wakaText}」(${karuta.kajin})\n\n【令和ポジティブ解釈】\n${truncatedInterpretation}\n\n${hashtag}`;
+                    text = `【${karuta.number}番】\n「${wakaText}」(${karuta.kajin})\n\n【令和ポジティブ解釈】\n${truncatedInterpretation}\n\n${hashtag}`;
                 } else {
                     text = baseText;
                 }
             } else {
                 // タイトル画面または序歌の場合
-                text = `令和のポジティブ解釈百人一首で、古典和歌を新しい視点から楽しもう！\n\n${hashtag}`;
+                text = `自己肯定感が高い令和のポジティブ解釈百人一首で、古典和歌を新しい視点から楽しもう！\n\n${hashtag}`;
             }
             const twitterURL = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(siteURL)}`;
             twitterShareLink.href = twitterURL;
@@ -504,22 +504,29 @@
                 fadeOverlay.classList.add('visible');
                 await new Promise(resolve => setTimeout(resolve, 1500));
                 display.classList.remove('visible');
+            } else {
+                // 初回表示の際はフェードインをスキップするため、フラグのみ更新
+                isFirstPlay = false;
             }
 
             let karuta;
+            /*
+            // 序歌を最初に表示する機能をコメントアウト
             if (isFirstPlay) {
                 karuta = karutaData[0];
                 currentIndex = 1;
                 isFirstPlay = false;
-            } else if (isRandomOrder) {
-                const regularKaruta = karutaData.slice(1);
+            } else 
+            */
+            if (isRandomOrder) {
+                const regularKaruta = karutaData.slice(1); // 序歌(index 0)を除外
                 karuta = regularKaruta[Math.floor(Math.random() * regularKaruta.length)];
             } else {
+                if (currentIndex === 0 || currentIndex >= karutaData.length) {
+                    currentIndex = 1; // 0または範囲外になっていたら1番に戻す
+                }
                 karuta = karutaData[currentIndex];
                 currentIndex++;
-                if (currentIndex >= karutaData.length) {
-                    currentIndex = 1; // 100の次は1に戻る
-                }
             }
             
             if (karuta) {
@@ -567,6 +574,9 @@
                 startButton.textContent = 'エラーが発生しました';
             }
         });
+
+        // ページ読み込み時にタイトル画面用のシェアリンクを初期設定
+        updateTwitterLink();
     </script>
 </body>
 </html>
