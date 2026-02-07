@@ -331,8 +331,7 @@
 
     <script>
         const karutaData = [];
-        const csvPath1 = './小倉百人一首現代解釈.csv';
-        const csvPath2 = './scripts/waka.csv';
+        const csvPath = './data.csv';
 
         const container = document.getElementById('container');
         const mainTitle = document.getElementById('main-title');
@@ -397,46 +396,40 @@
 
         async function loadData() {
             try {
-                const [response1, response2] = await Promise.all([
-                    fetch(csvPath1),
-                    fetch(csvPath2)
-                ]);
+                const response = await fetch(csvPath);
 
-                if (!response1.ok || !response2.ok) {
+                if (!response.ok) {
                     throw new Error('CSVの読み込みに失敗しました。');
                 }
 
-                const text1 = await response1.text();
-                const text2 = await response2.text();
+                const text = await response.text();
                 
-                const parseCsv = (text) => {
-                    const textWithoutBom = text.charCodeAt(0) === 0xFEFF ? text.substring(1) : text;
-                    return textWithoutBom.split(/\r?\n/).slice(1);
+                const textWithoutBom = text.charCodeAt(0) === 0xFEFF ? text.substring(1) : text;
+
+                const parseCsv = (csvText) => {
+                    const lines = csvText.split(/\r?\n/);
+                    if (lines.length < 2) return [];
+                    
+                    const header = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+                    const data = [];
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i];
+                        if (!line.trim()) continue;
+
+                        const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                        const rowObject = {};
+                        for (let j = 0; j < header.length; j++) {
+                            const key = header[j];
+                            const value = (values[j] || '').trim().replace(/^"|"$/g, '').replace(/""/g, '"');
+                            rowObject[key] = value;
+                        }
+                        data.push(rowObject);
+                    }
+                    return data;
                 };
 
-                const lines1 = parseCsv(text1);
-                const lines2 = parseCsv(text2);
-
-                const wakaMap = new Map();
-                lines2.forEach(line => {
-                    const columns = line.split(',');
-                    if (columns.length >= 7) {
-                        const [num, kajin, waka, gendaigo, , , positive_y] = columns;
-                        if (num && num.trim()) {
-                            const wakaParts = waka.trim().split(/\s+/);
-                            const newWaka = (wakaParts.length === 5)
-                                ? [ wakaParts[0], `${wakaParts[1]} ${wakaParts[2]}`, wakaParts[3], wakaParts[4] ].join('\n')
-                                : waka.trim().replace(/ /g, '\n');
-
-                            wakaMap.set(num.trim(), { 
-                                kajin: kajin.trim(),
-                                waka: newWaka,
-                                gendaigo: gendaigo.trim(),
-                                positive_y: positive_y.trim()
-                            });
-                        }
-                    }
-                });
+                const parsedData = parseCsv(textWithoutBom);
 
                 karutaData.push({
                     number: '0',
@@ -447,21 +440,23 @@
                     positive_y: '厳しい冬を耐え抜いた花が、春の訪れと共に一斉に咲き誇るように、あなたの努力も必ず開花の時を迎えます。希望を持って、新しい季節の一歩を踏み出しましょう。'
                 });
 
-                lines1.forEach(line => {
-                    const columns = line.split(',');
-                    if (columns.length >= 4) {
-                        const [num, , , positive_x] = columns;
-                        const wakaInfo = wakaMap.get(num.trim());
-                        if (num && num.trim() && wakaInfo) {
-                            karutaData.push({
-                                number: num.trim(),
-                                kajin: wakaInfo.kajin,
-                                waka: wakaInfo.waka,
-                                gendaigo: wakaInfo.gendaigo,
-                                positive_x: positive_x.trim(),
-                                positive_y: wakaInfo.positive_y
-                            });
-                        }
+                parsedData.forEach(row => {
+                    if (row['歌番号'] && row['歌番号'].trim()) {
+                        const wakaText = row['歌'] || '';
+                        const wakaParts = wakaText.trim().split(/\s+/);
+                        
+                        const newWaka = (wakaParts.length === 5)
+                            ? `${wakaParts[0]} ${wakaParts[1]} ${wakaParts[2]}\n${wakaParts[3]} ${wakaParts[4]}`
+                            : wakaText.replace(/\s+/g, '\n');
+
+                        karutaData.push({
+                            number: row['歌番号'],
+                            kajin: row['歌人'],
+                            waka: newWaka,
+                            gendaigo: row['現代語訳'],
+                            positive_y: row['おだやかポジティブ現代語訳'],
+                            positive_x: row['情熱ポジティブ現代語訳']
+                        });
                     }
                 });
 
@@ -474,7 +469,7 @@
                 display.classList.add('visible');
                 return false;
             }
-            updateTwitterLink(); // 初期表示用のTwitterリンクを設定
+            updateTwitterLink();
             return true;
         }
         

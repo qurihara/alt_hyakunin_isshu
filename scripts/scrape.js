@@ -39,7 +39,7 @@ async function main() {
                 const source = getInfo('出典');
                 const kimariji = getInfo('決まり字');
 
-                const csvRow = [i + 1, author, poem, translation, source, kimariji].join(',');
+                const csvRow = [i + 1, author, poem, translation, source, kimariji].map(field => `"${String(field).replace(/"/g, '""')}"`).join(',');
 
                 fs.appendFileSync(csvFilePath, csvRow + '\n');
                 
