@@ -446,7 +446,7 @@
                         const wakaParts = wakaText.trim().split(/\s+/);
                         
                         const newWaka = (wakaParts.length === 5)
-                            ? `${wakaParts[0]} ${wakaParts[1]} ${wakaParts[2]}\n${wakaParts[3]} ${wakaParts[4]}`
+                            ? [ wakaParts[0], `${wakaParts[1]} ${wakaParts[2]}`, wakaParts[3], wakaParts[4] ].join('\n')
                             : wakaText.replace(/\s+/g, '\n');
 
                         karutaData.push({
