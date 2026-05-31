@@ -1,0 +1,17 @@
+{
+  "name": "alt-hyakunin-isshu-daily-tweet",
+  "version": "1.0.0",
+  "description": "小倉百人一首ポジティブ解釈を毎日1首ランダムにXへ自動投稿するスクリプト",
+  "type": "module",
+  "main": "post_daily_tweet.js",
+  "scripts": {
+    "post": "node post_daily_tweet.js",
+    "dry-run": "node post_daily_tweet.js --dry-run"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "csv-parse": "^6.2.1",
+    "dotenv": "^17.4.2",
+    "twitter-api-v2": "^1.29.0"
+  }
+}
